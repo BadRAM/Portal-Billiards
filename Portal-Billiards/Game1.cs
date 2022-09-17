@@ -25,14 +25,13 @@ public class Game1 : Game
 
         public Ball()
         {
-            this.Position = new Vector2(Random.Shared.Next(GameInfo.widthBound), Random.Shared.Next(GameInfo.heightBound));
-            this.Velocity = new Vector2(Random.Shared.NextSingle()*6-3, Random.Shared.NextSingle()*6-3);
+            this.Position = new Vector2(Random.Shared.Next(GameInfo.widthBound),
+                Random.Shared.Next(GameInfo.heightBound));
+            this.Velocity = new Vector2(Random.Shared.NextSingle() * 6 - 3, Random.Shared.NextSingle() * 6 - 3);
         }
 
         public void Update(List<Ball> toCollide, int index)
         {
-            Position += Velocity;
-
             //check for collision with walls
             // if (Position.X < 0)
             // {
@@ -58,26 +57,27 @@ public class Game1 : Game
 
             Vector2 gravity = new Vector2(GameInfo.widthBound / 2, GameInfo.heightBound / 2) - Position;
 
-            gravity = Vector2.Normalize(gravity) * 0.2f;//* MathF.Pow(gravity.Length(), -0.5f) * 1f;
+            gravity = Vector2.Normalize(gravity) * 0.2f; //* MathF.Pow(gravity.Length(), -0.5f) * 1f;
 
             Velocity += gravity;
-            
-            
+
+
 
 
             // apply force from every ball
             for (int i = 0; i < toCollide.Count; i++)
             {
-                if(toCollide[i].Position == Position)
+                if (toCollide[i].Position == Position)
                 {
                     continue; // this is probably us.
                 }
-            
+
                 Vector2 repulse = Position - toCollide[i].Position;
 
                 float strength = MathF.Pow(repulse.Length(), -1f);
 
-                Velocity = Vector2.Lerp(Velocity, toCollide[i].Velocity,  toCollide[i].Velocity.Length() * strength * 0.01f);
+                Velocity = Vector2.Lerp(Velocity, toCollide[i].Velocity,
+                    toCollide[i].Velocity.Length() * strength * 0.01f);
 
                 repulse = Vector2.Normalize(repulse) * strength * 0.5f;
 
@@ -86,14 +86,14 @@ public class Game1 : Game
 
             // drag
             //Velocity *= 0.995f;
-            
+
             // random jitter
             if (Random.Shared.Next(500) == 1)
             {
                 Velocity.X += Random.Shared.Next(2) - 1;
                 Velocity.Y += Random.Shared.Next(2) - 1;
             }
-            
+
             // random jumps
             if (Random.Shared.Next(20000) == 1)
             {
@@ -126,8 +126,13 @@ public class Game1 : Game
             //     }
             // }
         }
+
+        public void LateUpdate()
+        {
+            Position += Velocity;
+        }
     }
-    
+
     private List<Ball> _balls = new List<Ball>();
     
     private Texture2D _ballTexture;
@@ -197,7 +202,11 @@ public class Game1 : Game
             _balls[i].Update(_balls, i);
         }
         
-
+        for (int i = 0; i < _balls.Count; i++)
+        {
+            _balls[i].LateUpdate();
+        }
+        
         base.Update(gameTime);
     }
 
