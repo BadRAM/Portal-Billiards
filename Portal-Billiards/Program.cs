@@ -1,2 +1,2 @@
-﻿using var game = new Portal_Billiards.Game1();
+﻿using var game = new Portal_Billiards.BallSpace();
 game.Run();

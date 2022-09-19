@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,16 +10,16 @@ using MonoGame.Extended;
 
 namespace Portal_Billiards;
 
-public class Game1 : Game
+public class BallSpace : Game
 {
+    private List<Ball> _balls = new List<Ball>();
     
+    private Texture2D _ballTexture;
+    private Texture2D _brickTexture;
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
-    private Texture2D _ballTexture;
-    private Texture2D _brickTexture;
-
-    public Game1()
+    public BallSpace()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
@@ -32,8 +32,11 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        // TODO: Add your initialization logic here
-        
+        for (int i = 0; i < 100; i++)
+        {
+            _balls.Add(new Ball());
+        }
+
         base.Initialize();
     }
 
@@ -56,7 +59,6 @@ public class Game1 : Game
         //     ballTexture = Texture2D.FromStream(GraphicsDevice, fileStream);
         // }
 
-        // TODO: use this.Content to load your game content here
     }
 
     protected override void Update(GameTime gameTime)
@@ -64,7 +66,22 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
+
+
+        // foreach (Ball b in _balls)
+        // {
+        //     b.Update(_balls);
+        // }
+
+        for (int i = 0; i < _balls.Count; i++)
+        {
+            _balls[i].Update(_balls, i);
+        }
         
+        for (int i = 0; i < _balls.Count; i++)
+        {
+            _balls[i].LateUpdate();
+        }
         
         base.Update(gameTime);
     }
@@ -72,12 +89,15 @@ public class Game1 : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);
-
-        // TODO: Add your drawing code here
-
+        
         _spriteBatch.Begin();
         //_spriteBatch.Draw(_ballTexture, new Vector2(0, 0), Color.White);
-
+        
+        foreach (Ball b in _balls)
+        {
+            _spriteBatch.DrawCircle(b.Position, 6, 12, Color.Aqua);
+        }
+        
         _spriteBatch.End();
 
         base.Draw(gameTime);

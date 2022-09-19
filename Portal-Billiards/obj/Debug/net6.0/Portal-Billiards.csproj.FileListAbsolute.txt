@@ -23,3 +23,6 @@ C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\obj\Debug\net6.0\
 C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\obj\Debug\net6.0\Portal-Billiards.pdb
 C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\obj\Debug\net6.0\Portal-Billiards.genruntimeconfig.cache
 C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\obj\Debug\net6.0\ref\Portal-Billiards.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\MonoGame.Extended.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\MonoGame.Extended.Tweening.dll

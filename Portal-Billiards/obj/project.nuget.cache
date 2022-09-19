@@ -1,11 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "eP3p2AnEvpXW0IJtSMhcmg6jfW/lVPdqMCtUEk9mf7Po+8KdlFaX83AOgekbhUm+xzOB2ZZ1FTs9pi2NYyp8Jg==",
+  "dgSpecHash": "cX7OzIxdmFJRrDeGa+9Gj1yqG1aT1f4TUmTgXSqUHnaXIo9H79fsoqFHjPaF1SKTmO+rPs8KL2mSDkF3klIZ5A==",
   "success": true,
   "projectFilePath": "C:\\Users\\dgame\\RiderProjects\\Portal-Billiards\\Portal-Billiards\\Portal-Billiards.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\dgame\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
-    "C:\\Users\\dgame\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
+    "C:\\Users\\dgame\\.nuget\\packages\\monogame.extended\\3.8.0\\monogame.extended.3.8.0.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\monogame.extended.tweening\\3.8.0\\monogame.extended.tweening.3.8.0.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
   ],
   "logs": []
 }
