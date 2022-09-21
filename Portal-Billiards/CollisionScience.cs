@@ -29,6 +29,8 @@ public class CollisionScience : Game
     private float _currentTime = 0;
 
     private List<int[]> _chart = new List<int[]>();
+    private List<int[]> _xchart = new List<int[]>();
+    private List<int[]> _ychart = new List<int[]>();
     private bool _skipButton = false;
 
     private float Dist(float t)
@@ -42,7 +44,34 @@ public class CollisionScience : Game
         for (int i = 0; i < 200; i++)
         {
             _chart.Add(new []{i*4, (int)Dist((float)i/200)});
+            _xchart.Add(new []{i*4, 
+                (int)Math.Abs(Vector2.Lerp(_ball1Pos, _ball1Dest, (float)i/200).X - Vector2.Lerp(_ball2Pos, _ball2Dest, (float)i/200).X)});
+            _ychart.Add(new []{i*4,
+                (int)Math.Abs(Vector2.Lerp(_ball1Pos, _ball1Dest, (float)i/200).Y - Vector2.Lerp(_ball2Pos, _ball2Dest, (float)i/200).Y)});
         }
+    }
+
+    private void DrawChart(List<int[]> chart, int co, Color color)
+    {
+        for (int i = 0; i < chart.Count-1; i++)
+        {
+            _spriteBatch.DrawLine(chart[i][0], chart[i][1] + co, chart[i+1][0], chart[i+1][1] + co, color, 3);
+        }
+    }
+
+    private void Randomize()
+    {
+        _currentTime = 0;
+                
+        _chart.Clear();
+        _xchart.Clear();
+        _ychart.Clear();
+        _ball1Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+        _ball2Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+        _ball1Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+        _ball2Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+                
+        Chart();
     }
 
     public CollisionScience()
@@ -76,43 +105,55 @@ public class CollisionScience : Game
         if (state.IsKeyDown(Keys.Escape))
             Exit();
 
+        
+        // handle normal randomize button
         if (state.IsKeyDown(Keys.N))
         {
             if (!_skipButton)
             {
-                _currentTime = 0;
-                
-                _chart.Clear();
-                _ball1Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-                _ball2Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-                _ball1Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-                _ball2Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-                
-                Chart();
-                
+                Randomize();
+
                 _skipButton = true;
             }
         }
-        else if (_skipButton) _skipButton = false;
+        else if (_skipButton) _skipButton = false; // reset _skipbutton state when buttton is released.
+        
+        
+        // handle super skip
+        if (state.IsKeyDown(Keys.M))
+        {
+            bool reset = true;
+            for (int i = 0; i < _chart.Count; i++)
+            {
+                if (_chart[i][1] <= 32)
+                {
+                    reset = false;
+                    break;
+                }
+            }
+            
+            if (reset)
+            {
+                Randomize();
+            }
+        }
 
 
         if (!state.IsKeyDown(Keys.Space))
         {
-            _currentTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (state.IsKeyDown(Keys.B))
+            {
+                _currentTime += (float)gameTime.ElapsedGameTime.TotalSeconds * 0.1f;
+            }
+            else
+            {
+                _currentTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
         }
         
         if (_currentTime > _duration)
         {
             _currentTime = 0;
-            // _charted = true;
-
-            // _chart.Clear();
-            // _ball1Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-            // _ball2Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-            // _ball1Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-            // _ball2Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
-            // _ball1Vel = new Vector2(Random.Shared.Next(-100, 100), Random.Shared.Next(-100, 100));
-            // _ball2Vel = new Vector2(Random.Shared.Next(-100, 100), Random.Shared.Next(-100, 100));
         }
 
         base.Update(gameTime);
@@ -121,38 +162,27 @@ public class CollisionScience : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);
-
-        // TODO: Add your drawing code here
-
+        
         float t = _currentTime / _duration;
         
         _spriteBatch.Begin();
-        //_spriteBatch.Draw(_ballTexture, new Vector2(0, 0), Color.White);
         
         
         // Draw distance graph
-        int cw = 800; // Chart Width
-        int co = 50; // Chart Offset
-        // for (int i = 0; i < _chart.Count-1; i++)
-        // {
-        //     _spriteBatch.DrawLine(
-        //         cw * i   / _chart.Count + co, _chart[i  ] + co, 
-        //         cw *(i+1)/ _chart.Count + co, _chart[i+1] + co, 
-        //         Color.DarkSeaGreen, 3);
-        // }
+        const int cw = 800; // Chart Width
+        const int co = 50; // Chart Offset
+
         
-        for (int i = 0; i < _chart.Count-1; i++)
-        {
-            _spriteBatch.DrawLine(_chart[i][0], _chart[i][1] + co, _chart[i+1][0], _chart[i+1][1] + co, Color.DarkSeaGreen, 3);
-        }
+        DrawChart(_ychart, co, Color.Blue);
+        DrawChart(_xchart, co, Color.DarkGreen);
+        DrawChart(_chart, co, Color.Gray);
         
-        
-        
+
         // draw time cursor
         int cursor = (int)((_currentTime / _duration) * cw); 
-        //int cursory = co + (int)_chart[(int)(_currentTime / _duration * _chart.Count)];
         int cursory = co + (int)Dist(t);
         _spriteBatch.DrawCircle(cursor, cursory, 5, 16, Color.WhiteSmoke);
+        _spriteBatch.DrawLine(cursor, 0, cursor, 800, Color.WhiteSmoke);
 
         // draw collision threshold line
         _spriteBatch.DrawLine(0, 82, 800, 82, Color.DarkCyan);
