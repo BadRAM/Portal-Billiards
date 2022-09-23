@@ -11,6 +11,8 @@ using MonoGame.Extended;
 
 namespace Portal_Billiards;
 
+
+// This program is a testbed for detecting collisions between pairs of moving circles
 public class CollisionScience : Game
 {
     
@@ -29,8 +31,12 @@ public class CollisionScience : Game
     private float _currentTime = 0;
 
     private List<int[]> _chart = new List<int[]>();
+    private List<int[]> _mathsChart = new List<int[]>();
     private List<int[]> _xchart = new List<int[]>();
     private List<int[]> _ychart = new List<int[]>();
+
+    private Vector2 _root = new Vector2();
+    
     private bool _skipButton = false;
 
     private float Dist(float t)
@@ -40,15 +46,33 @@ public class CollisionScience : Game
 
     private void Chart()
     {
+        Vector2 b1p = new Vector2();
+        Vector2 b2p = new Vector2();
+        float x;
+        float y;
+        
         // prechart new scene
         for (int i = 0; i < 200; i++)
         {
+            b1p = Vector2.Lerp(_ball1Pos, _ball1Dest, (float)i / 200);
+            b2p = Vector2.Lerp(_ball2Pos, _ball2Dest, (float)i / 200);
+            
             _chart.Add(new []{i*4, (int)Dist((float)i/200)});
-            _xchart.Add(new []{i*4, 
-                (int)Math.Abs(Vector2.Lerp(_ball1Pos, _ball1Dest, (float)i/200).X - Vector2.Lerp(_ball2Pos, _ball2Dest, (float)i/200).X)});
-            _ychart.Add(new []{i*4,
-                (int)Math.Abs(Vector2.Lerp(_ball1Pos, _ball1Dest, (float)i/200).Y - Vector2.Lerp(_ball2Pos, _ball2Dest, (float)i/200).Y)});
+            
+            x = Math.Abs(b1p.X - b2p.X);
+            _xchart.Add(new []{i*4, (int)x});
+
+            y = Math.Abs(b1p.Y - b2p.Y);
+            _ychart.Add(new []{i*4, (int)y});
+            
+            _mathsChart.Add(new []{i*4, (int)Math.Sqrt(x*x + y*y)});
         }
+
+        // float d = 
+        // if (expr)
+        // {
+        //     
+        // }
     }
 
     private void DrawChart(List<int[]> chart, int co, Color color)
@@ -66,6 +90,7 @@ public class CollisionScience : Game
         _chart.Clear();
         _xchart.Clear();
         _ychart.Clear();
+        _mathsChart.Clear();
         _ball1Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
         _ball2Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
         _ball1Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
@@ -73,6 +98,15 @@ public class CollisionScience : Game
                 
         Chart();
     }
+
+    private void BenchmarkRandomize()
+    {
+        _ball1Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+        _ball2Pos = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+        _ball1Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+        _ball2Dest = new Vector2(Random.Shared.Next(50, 750), Random.Shared.Next(200, 750));
+    }
+    
 
     public CollisionScience()
     {
@@ -87,7 +121,151 @@ public class CollisionScience : Game
     protected override void Initialize()
     {
         Chart();
+        
+        // Benchmark Time!
+        
+        Debug.WriteLine("\n");
+        Debug.WriteLine(" ---------------------- Benchmark Time! ----------------------\n");
 
+
+        int tally = 0;
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            BenchmarkRandomize();
+            // tally += _ball1Dest.X > 400 ? 1 : 0;
+        }
+        
+        
+        sw.Stop();
+        Debug.WriteLine($"Control: Time to generate 1 000 000 random collision situations: {sw.ElapsedMilliseconds}ms, tally (random 50% chance): {tally}");
+        long control = sw.ElapsedMilliseconds;
+
+        
+        // Single axis overlap prune
+        // tally = 0;
+        // sw.Restart();
+        //
+        // int b1l = 0;
+        // int b1r = 0;
+        // int b2l = 0;
+        // int b2r = 0;
+        //
+        // for (int i = 0; i < 1000000; i++)
+        // {
+        //     BenchmarkRandomize();
+        //
+        //
+        //     if (_ball1Pos.X < _ball1Dest.X)
+        //     {
+        //         b1l = 
+        //     }
+        //
+        //     if () tally++;
+        // }
+        //
+        // sw.Stop();
+        // Debug.WriteLine($"Time to prune 1 000 000 random collision situations via single axis overlap: {sw.ElapsedMilliseconds-control}ms, tally: {tally}");
+        
+        tally = 0;
+        sw.Restart();
+
+        Rectangle rect1 = new Rectangle();
+        Rectangle rect2 = new Rectangle();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            BenchmarkRandomize();
+            
+            // rect1.SetFromTwoPoints(_ball1Pos, _ball1Dest);
+            // rect2.SetFromTwoPoints(_ball2Pos, _ball2Dest);
+            // rect1.Inflate(64, 64);
+            // rect2.Inflate(64, 64);
+            
+            rect1.SetFromTwoPointsAndInflate(_ball1Pos, _ball1Dest, 32);
+            rect2.SetFromTwoPointsAndInflate(_ball2Pos, _ball2Dest, 32);
+            
+            
+            if (rect1.Intersects(rect2)) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to prune 1 000 000 random collision situations via bounding box overlap: {sw.ElapsedMilliseconds-control}ms, tally: {tally}");
+
+        tally = 0;
+        sw.Restart();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            BenchmarkRandomize();
+
+            int dx = (int)_ball1Pos.X - (int)_ball2Pos.X;
+            int dy = (int)_ball1Pos.Y - (int)_ball2Pos.Y;
+            if (dx < 32 && dx > -32 && dy < 32 && dy > -32) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to test 1 000 000 ball bounding box overlaps: {sw.ElapsedMilliseconds-control}ms, tally: {tally}");
+        
+        tally = 0;
+        sw.Restart();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            BenchmarkRandomize();
+
+            if (Vector2.Distance(_ball1Pos, _ball2Pos) < 32) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to test 1 000 000 circle-circle overlaps with vector2.distance: {sw.ElapsedMilliseconds-control}ms, tally: {tally}");
+
+        tally = 0;
+        sw.Restart();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            if (Random.Shared.Next(100000) < 32) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to perform 1 000 000 random.shared.next operations: {sw.ElapsedMilliseconds}ms, tally: {tally}");
+        
+        tally = 0;
+        sw.Restart();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            if (Math.Sqrt(Random.Shared.Next(100000)) < 32) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to perform 1 000 000 math.sqrt operations: {sw.ElapsedMilliseconds}ms, tally: {tally}");
+        
+        tally = 0;
+        sw.Restart();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            if (Math.Abs(Random.Shared.Next(-10000, 10000)) < 32) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to perform 1 000 000 math.abs operations: {sw.ElapsedMilliseconds}ms, tally: {tally}");
+        
+        tally = 0;
+        sw.Restart();
+
+        for (int i = 0; i < 1000000; i++)
+        {
+            if (Math.Abs(Random.Shared.Next(-10000, 10000)) < 32) tally++;
+        }
+        
+        sw.Stop();
+        Debug.WriteLine($"Time to perform 1 000 000 math.abs operations: {sw.ElapsedMilliseconds}ms, tally: {tally}");
+        
+        Debug.WriteLine("\n");
         base.Initialize();
     }
 
@@ -102,8 +280,7 @@ public class CollisionScience : Game
         KeyboardState state = Keyboard.GetState();
             
         // If they hit esc, exit
-        if (state.IsKeyDown(Keys.Escape))
-            Exit();
+        if (state.IsKeyDown(Keys.Escape)) Exit();
 
         
         // handle normal randomize button
@@ -161,6 +338,7 @@ public class CollisionScience : Game
 
     protected override void Draw(GameTime gameTime)
     {
+
         GraphicsDevice.Clear(Color.Black);
         
         float t = _currentTime / _duration;
@@ -176,6 +354,7 @@ public class CollisionScience : Game
         DrawChart(_ychart, co, Color.Blue);
         DrawChart(_xchart, co, Color.DarkGreen);
         DrawChart(_chart, co, Color.Gray);
+        DrawChart(_mathsChart, co, Color.Pink);
         
 
         // draw time cursor

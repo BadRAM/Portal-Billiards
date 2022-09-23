@@ -8,7 +8,7 @@ public class Ball
 {
     public Vector2 Position;
     public Vector2 Velocity;
-    public int size = 15;
+    public int size = 16;
 
     public Ball(Vector2 position, Vector2 velocity)
     {
