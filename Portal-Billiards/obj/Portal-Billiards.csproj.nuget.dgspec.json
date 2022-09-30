@@ -38,11 +38,19 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "FontStashSharp.MonoGame": {
+              "target": "Package",
+              "version": "[1.2.7, )"
+            },
             "MonoGame.Content.Builder.Task": {
               "target": "Package",
               "version": "[3.8.1.303, )"
             },
             "MonoGame.Extended": {
+              "target": "Package",
+              "version": "[3.8.0, )"
+            },
+            "MonoGame.Extended.Gui": {
               "target": "Package",
               "version": "[3.8.0, )"
             },

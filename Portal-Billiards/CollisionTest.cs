@@ -4,10 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
+using MonoGame.Extended.BitmapFonts;
 
 namespace Portal_Billiards;
 
@@ -16,15 +18,18 @@ public class CollisionTest : Game
     
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+    private FontSystem _fontSystem;
 
     private Vector2 _ball1Origin = new Vector2(200, 400);
     private Vector2 _ball1StartVel = new Vector2(60, 0);
     private Vector2 _ball1Pos;
     private Vector2 _ball1Vel;
+    private float _ball1Mass = 32;
     private Vector2 _ball2Origin = new Vector2(400, 400);
     private Vector2 _ball2StartVel = new Vector2(0, 0);
     private Vector2 _ball2Pos;
     private Vector2 _ball2Vel;
+    private float _ball2Mass = 32;
     // private Vector2 _ball1Dest = new Vector2(600, 600);
     // private Vector2 _ball2Dest = new Vector2(640, 200);
     private List<int[]> _ball1Path = new List<int[]>();
@@ -74,6 +79,8 @@ public class CollisionTest : Game
         _ball2Origin = new Vector2(Random.Shared.Next(350, 450), Random.Shared.Next(350, 450));
         _ball1StartVel = new Vector2(Random.Shared.Next(0, 100), Random.Shared.Next(-10, 10));
         _ball2StartVel = new Vector2(Random.Shared.Next(-10, 10), Random.Shared.Next(-10, 10));
+        // _ball1Mass = Random.Shared.Next(10, 50);
+        // _ball2Mass = Random.Shared.Next(10, 50);
         
         Reset();
     }
@@ -98,6 +105,22 @@ public class CollisionTest : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
+        
+        // Debug.WriteLine("#######");
+        // Debug.WriteLine("gonna load some file, Environment.CurrentDirectory = " + Environment.CurrentDirectory );
+        string path = Path.GetFullPath(@"..\..\..\");
+        // Debug.WriteLine("Path.GetFullPath = " + path);
+        // Debug.WriteLine("#######");
+        // Console.WriteLine("Where does this go?");
+        //
+        // _ballTexture = Texture2D.FromFile(GraphicsDevice, path + "pinball.png");
+        // _brickTexture = Texture2D.FromFile(GraphicsDevice, path + "Brick.png");
+        // _bitmapFont = Content.Load<BitmapFont>("my-font");
+        
+        _fontSystem = new FontSystem();
+        //_fontSystem.AddFont(File.ReadAllBytes(path + "Federation_Starfleet_Hull_23rd.ttf"));
+        //_fontSystem.AddFont(File.ReadAllBytes(@"Fonts/DroidSansJapanese.ttf"));
+        //_fontSystem.AddFont(File.ReadAllBytes(@"Fonts/Symbola-Emoji.ttf"));
     }
 
     protected override void Update(GameTime gameTime)
@@ -138,23 +161,37 @@ public class CollisionTest : Game
         _ball2Pos += _ball2Vel * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // collision test
-        if (!_hasCollided && Dist() < 64)
+        if (!_hasCollided && Dist() < _ball1Mass + _ball2Mass)
         {
             _hasCollided = true;
-            
-            // Naive collision effect 1: add relative velocities
-            // Vector2 ball1RVel = _ball2Vel - _ball1Vel;
-            // Vector2 ball2RVel = _ball1Vel - _ball2Vel;
-            // _ball1Vel += ball1RVel;
-            // _ball2Vel += ball2RVel;
-            
-            // Naive collision effect 2: mirror vels across normal
-            Vector2 n1 = _ball1Pos - _ball2Pos;
-            n1.Normalize();
-            _ball1Vel = Vector2.Reflect(_ball1Vel, n1);
-            Vector2 n2 = _ball2Pos - _ball1Pos;
-            n2.Normalize();
-            _ball2Vel = Vector2.Reflect(_ball2Vel, n2);
+
+            switch (3)
+            {
+                case 1: // Naive collision effect 1: add relative velocities
+                    Vector2 ball1RVel = _ball2Vel - _ball1Vel;
+                    Vector2 ball2RVel = _ball1Vel - _ball2Vel;
+                    _ball1Vel += ball1RVel;
+                    _ball2Vel += ball2RVel;
+                    break;
+                
+                case 2: // Naive collision effect 2: mirror vels across normal
+                    Vector2 n1 = _ball1Pos - _ball2Pos;
+                    n1.Normalize();
+                    _ball1Vel = Vector2.Reflect(_ball1Vel, n1);
+                    Vector2 n2 = _ball2Pos - _ball1Pos;
+                    n2.Normalize();
+                    _ball2Vel = Vector2.Reflect(_ball2Vel, n2);
+                    break;
+
+                case 3: // Naive collision effect 3: impulse of rvel projected along normal
+                    Vector2 i1 = _ball2Vel - _ball1Vel;
+                    i1 = i1.ProjectOnto(Vector2.Normalize(_ball1Pos - _ball2Pos));
+                    Vector2 i2 = _ball1Vel - _ball2Vel;
+                    i2 = i2.ProjectOnto(Vector2.Normalize(_ball2Pos - _ball1Pos));
+                    _ball1Vel += i1 * _ball2Mass / _ball1Mass;
+                    _ball2Vel += i2 * _ball1Mass / _ball2Mass;
+                    break;
+            }
         }
 
         if (!_charted)
@@ -178,10 +215,14 @@ public class CollisionTest : Game
         // draw balls and their trajectories
         DrawChart(_ball1Path, Color.AliceBlue);
         DrawChart(_ball2Path, Color.DarkSalmon);
-        _spriteBatch.DrawCircle(_ball1Pos, 32, 16, Color.CadetBlue, 32);
-        _spriteBatch.DrawCircle(_ball2Pos, 32, 16, Color.Salmon, 32);
-
+        _spriteBatch.DrawCircle(_ball1Pos, _ball1Mass, 32, Color.CadetBlue, 2);
+        _spriteBatch.DrawCircle(_ball2Pos, _ball2Mass, 32, Color.Salmon, 2);
         
+        
+        // SpriteFontBase font18 = _fontSystem.GetFont(18);
+        // _spriteBatch.DrawString(font18, "MODE 3", new Vector2(0, 0), Color.White);
+
+
         _spriteBatch.End();
 
         base.Draw(gameTime);

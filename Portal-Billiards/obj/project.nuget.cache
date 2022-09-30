@@ -1,14 +1,22 @@
 {
   "version": 2,
-  "dgSpecHash": "cX7OzIxdmFJRrDeGa+9Gj1yqG1aT1f4TUmTgXSqUHnaXIo9H79fsoqFHjPaF1SKTmO+rPs8KL2mSDkF3klIZ5A==",
+  "dgSpecHash": "D7lFnFf8ftC0DcDQMw4SMropo1ytZpTPWoobDnCd/VyavGkhGPUWylysDTVyAUXb1ODQk5wwX94tnggDyIzvUA==",
   "success": true,
   "projectFilePath": "C:\\Users\\dgame\\RiderProjects\\Portal-Billiards\\Portal-Billiards\\Portal-Billiards.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\dgame\\.nuget\\packages\\cyotek.drawing.bitmapfont\\2.0.4\\cyotek.drawing.bitmapfont.2.0.4.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\fontstashsharp.base\\1.1.7\\fontstashsharp.base.1.1.7.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\fontstashsharp.monogame\\1.2.7\\fontstashsharp.monogame.1.2.7.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\fontstashsharp.rasterizers.stbtruetypesharp\\1.1.7\\fontstashsharp.rasterizers.stbtruetypesharp.1.1.7.nupkg.sha512",
     "C:\\Users\\dgame\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
     "C:\\Users\\dgame\\.nuget\\packages\\monogame.extended\\3.8.0\\monogame.extended.3.8.0.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\monogame.extended.gui\\3.8.0\\monogame.extended.gui.3.8.0.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\monogame.extended.input\\3.8.0\\monogame.extended.input.3.8.0.nupkg.sha512",
     "C:\\Users\\dgame\\.nuget\\packages\\monogame.extended.tweening\\3.8.0\\monogame.extended.tweening.3.8.0.nupkg.sha512",
     "C:\\Users\\dgame\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512",
-    "C:\\Users\\dgame\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
+    "C:\\Users\\dgame\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\stbimagesharp\\2.27.12\\stbimagesharp.2.27.12.nupkg.sha512",
+    "C:\\Users\\dgame\\.nuget\\packages\\stbtruetypesharp\\1.26.10\\stbtruetypesharp.1.26.10.nupkg.sha512"
   ],
   "logs": []
 }

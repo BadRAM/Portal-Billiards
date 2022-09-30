@@ -1,2 +1,2 @@
-﻿using var game = new Portal_Billiards.CollisionScience();
+﻿using var game = new Portal_Billiards.CollisionTest();
 game.Run();
