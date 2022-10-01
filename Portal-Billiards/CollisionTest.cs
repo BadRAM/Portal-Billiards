@@ -20,16 +20,20 @@ public class CollisionTest : Game
     private SpriteBatch _spriteBatch;
     private FontSystem _fontSystem;
 
+    private int _mode = 3;
+    private float _two = 2; // that weird constant that doesn't do the same thing in every algo
+    //TODO: remove _two, it's only for science purposes
+
     private Vector2 _ball1Origin = new Vector2(200, 400);
     private Vector2 _ball1StartVel = new Vector2(60, 0);
     private Vector2 _ball1Pos;
     private Vector2 _ball1Vel;
-    private float _ball1Mass = 32;
+    private float _ball1Mass = 50;
     private Vector2 _ball2Origin = new Vector2(400, 400);
     private Vector2 _ball2StartVel = new Vector2(0, 0);
     private Vector2 _ball2Pos;
     private Vector2 _ball2Vel;
-    private float _ball2Mass = 32;
+    private float _ball2Mass = 50;
     // private Vector2 _ball1Dest = new Vector2(600, 600);
     // private Vector2 _ball2Dest = new Vector2(640, 200);
     private List<int[]> _ball1Path = new List<int[]>();
@@ -79,8 +83,8 @@ public class CollisionTest : Game
         _ball2Origin = new Vector2(Random.Shared.Next(350, 450), Random.Shared.Next(350, 450));
         _ball1StartVel = new Vector2(Random.Shared.Next(0, 100), Random.Shared.Next(-10, 10));
         _ball2StartVel = new Vector2(Random.Shared.Next(-10, 10), Random.Shared.Next(-10, 10));
-        // _ball1Mass = Random.Shared.Next(10, 50);
-        // _ball2Mass = Random.Shared.Next(10, 50);
+        _ball1Mass = Random.Shared.Next(10, 50);
+        _ball2Mass = Random.Shared.Next(10, 50);
         
         Reset();
     }
@@ -118,7 +122,9 @@ public class CollisionTest : Game
         // _bitmapFont = Content.Load<BitmapFont>("my-font");
         
         _fontSystem = new FontSystem();
-        //_fontSystem.AddFont(File.ReadAllBytes(path + "Federation_Starfleet_Hull_23rd.ttf"));
+        //_fontSystem.AddFont(File.ReadAllBytes(path + "fonts\\ModernDOS8x14.ttf"));
+        _fontSystem.AddFont(File.ReadAllBytes(path + "fonts\\alagard.ttf"));
+        
         //_fontSystem.AddFont(File.ReadAllBytes(@"Fonts/DroidSansJapanese.ttf"));
         //_fontSystem.AddFont(File.ReadAllBytes(@"Fonts/Symbola-Emoji.ttf"));
     }
@@ -131,6 +137,18 @@ public class CollisionTest : Game
         // If they hit esc, exit
         if (state.IsKeyDown(Keys.Escape))
             Exit();
+
+        
+        if (state.IsKeyDown(Keys.D1)) { _mode = 1; }
+        if (state.IsKeyDown(Keys.D2)) { _mode = 2; }
+        if (state.IsKeyDown(Keys.D3)) { _mode = 3; }
+        if (state.IsKeyDown(Keys.D4)) { _mode = 4; }
+        if (state.IsKeyDown(Keys.D5)) { _mode = 5; }
+        if (state.IsKeyDown(Keys.Z)) { _two += gameTime.GetElapsedSeconds() * 0.5f; }
+        if (state.IsKeyDown(Keys.X)) { _two -= gameTime.GetElapsedSeconds() * 0.5f; }
+        if (state.IsKeyDown(Keys.C)) { _two = MathF.Round(_two, 1); }
+        
+        
 
         if (state.IsKeyDown(Keys.N))
         {
@@ -165,7 +183,7 @@ public class CollisionTest : Game
         {
             _hasCollided = true;
 
-            switch (3)
+            switch (_mode)
             {
                 case 1: // Naive collision effect 1: add relative velocities
                     Vector2 ball1RVel = _ball2Vel - _ball1Vel;
@@ -185,11 +203,30 @@ public class CollisionTest : Game
 
                 case 3: // Naive collision effect 3: impulse of rvel projected along normal
                     Vector2 i1 = _ball2Vel - _ball1Vel;
-                    i1 = i1.ProjectOnto(Vector2.Normalize(_ball1Pos - _ball2Pos));
                     Vector2 i2 = _ball1Vel - _ball2Vel;
+                    i1 = i1.ProjectOnto(Vector2.Normalize(_ball1Pos - _ball2Pos));
                     i2 = i2.ProjectOnto(Vector2.Normalize(_ball2Pos - _ball1Pos));
-                    _ball1Vel += i1 * _ball2Mass / _ball1Mass;
-                    _ball2Vel += i2 * _ball1Mass / _ball2Mass;
+                    _ball1Vel += _two * i1 * (_ball2Mass / (_ball1Mass + _ball2Mass));
+                    _ball2Vel += _two * i2 * (_ball1Mass / (_ball1Mass + _ball2Mass));
+                    
+                    // case 1: b1 is 0% of combined mass, b1 is reflected
+                    // case 2: b1 is 50% of combined mass, velocities are exchanged
+                    // case 3: b1 is 100% of combined mass, it's velocity is unaffected
+                    break;
+                
+                case 4: // steal from wiki
+                    Vector2 v1 = _ball1Vel;
+                    Vector2 v2 = _ball2Vel;
+                    
+                    _ball1Vel = (v1 * ((_ball1Mass - _ball2Mass) / (_ball1Mass + _ball2Mass)) + v2 * ((2 * _ball2Mass)/_ball1Mass + _ball2Mass));
+                    _ball2Vel = (v2 * ((_ball2Mass - _ball1Mass) / (_ball1Mass + _ball2Mass)) + v1 * ((2 * _ball1Mass)/_ball1Mass + _ball2Mass));
+                    break;
+                
+                case 5: // Jamesway (TM)
+                    Vector2 CoolVel = _two*(_ball1Mass * _ball1Vel + _ball2Mass * _ball2Vel) / (_ball1Mass + _ball2Mass);
+
+                    _ball1Vel = CoolVel - _ball1Vel;
+                    _ball2Vel = CoolVel - _ball2Vel;
                     break;
             }
         }
@@ -219,8 +256,8 @@ public class CollisionTest : Game
         _spriteBatch.DrawCircle(_ball2Pos, _ball2Mass, 32, Color.Salmon, 2);
         
         
-        // SpriteFontBase font18 = _fontSystem.GetFont(18);
-        // _spriteBatch.DrawString(font18, "MODE 3", new Vector2(0, 0), Color.White);
+        SpriteFontBase font18 = _fontSystem.GetFont(30);
+        _spriteBatch.DrawString(font18, $"MODE: {_mode}\nMASS: {_ball1Mass} {_ball2Mass}\nVELOCITY: {_ball1Vel.Length()} {_ball2Vel.Length()}\nTWO: {_two}", new Vector2(0, 0), Color.White);
 
 
         _spriteBatch.End();
