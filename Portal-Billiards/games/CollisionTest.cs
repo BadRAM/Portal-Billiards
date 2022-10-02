@@ -145,8 +145,8 @@ public class CollisionTest : Game
         if (state.IsKeyDown(Keys.D4)) { _mode = 4; }
         if (state.IsKeyDown(Keys.D5)) { _mode = 5; }
         if (state.IsKeyDown(Keys.Z)) { _two += gameTime.GetElapsedSeconds() * 0.5f; }
-        if (state.IsKeyDown(Keys.X)) { _two -= gameTime.GetElapsedSeconds() * 0.5f; }
-        if (state.IsKeyDown(Keys.C)) { _two = MathF.Round(_two, 1); }
+        else if (state.IsKeyDown(Keys.X)) { _two -= gameTime.GetElapsedSeconds() * 0.5f; }
+        else { _two = MathF.Round(_two, 1); }
         
         
 
@@ -218,8 +218,8 @@ public class CollisionTest : Game
                     Vector2 v1 = _ball1Vel;
                     Vector2 v2 = _ball2Vel;
                     
-                    _ball1Vel = (v1 * ((_ball1Mass - _ball2Mass) / (_ball1Mass + _ball2Mass)) + v2 * ((2 * _ball2Mass)/_ball1Mass + _ball2Mass));
-                    _ball2Vel = (v2 * ((_ball2Mass - _ball1Mass) / (_ball1Mass + _ball2Mass)) + v1 * ((2 * _ball1Mass)/_ball1Mass + _ball2Mass));
+                    _ball1Vel = (v1 * ((_ball1Mass - _ball2Mass) / (_ball1Mass + _ball2Mass)) + v2 * ((_two * _ball2Mass)/_ball1Mass + _ball2Mass));
+                    _ball2Vel = (v2 * ((_ball2Mass - _ball1Mass) / (_ball1Mass + _ball2Mass)) + v1 * ((_two * _ball1Mass)/_ball1Mass + _ball2Mass));
                     break;
                 
                 case 5: // Jamesway (TM)

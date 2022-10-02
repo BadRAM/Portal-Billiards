@@ -26,3 +26,11 @@ C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\obj\Debug\net6.0\
 C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\MonoGame.Extended.dll
 C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\Newtonsoft.Json.dll
 C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\MonoGame.Extended.Tweening.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\Cyotek.Drawing.BitmapFont.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\FontStashSharp.Base.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\FontStashSharp.MonoGame.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\FontStashSharp.Rasterizers.StbTrueTypeSharp.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\MonoGame.Extended.Gui.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\MonoGame.Extended.Input.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\StbImageSharp.dll
+C:\Users\dgame\RiderProjects\Portal-Billiards\Portal-Billiards\bin\Debug\net6.0\StbTrueTypeSharp.dll
