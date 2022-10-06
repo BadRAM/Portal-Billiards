@@ -30,9 +30,10 @@ public class Game1 : Game
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        
-        _graphics.PreferredBackBufferWidth = 960;  // set this value to the desired width of your window
-        _graphics.PreferredBackBufferHeight = 720;   // set this value to the desired height of your window
+
+        int scale = 1;
+        _graphics.PreferredBackBufferWidth = 960 * scale;  // set this value to the desired width of your window
+        _graphics.PreferredBackBufferHeight = 720 * scale; // set this value to the desired height of your window
         _graphics.ApplyChanges();
     }
 
@@ -137,6 +138,11 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
+        // _spriteBatch = new SpriteBatch(GraphicsDevice);
+        // RenderTarget2D target = new RenderTarget2D(GraphicsDevice, 820, 615);
+        // GraphicsDevice.SetRenderTarget(target);
+        
+        
         GraphicsDevice.Clear(Color.Black);
 
         // TODO: Add your drawing code here
@@ -177,5 +183,13 @@ public class Game1 : Game
         _spriteBatch.End();
 
         base.Draw(gameTime);
+        
+        //set rendering back to the back buffer
+        GraphicsDevice.SetRenderTarget(null);
+
+        // //render target to back buffer
+        // _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
+        // _spriteBatch.Draw(target, new Rectangle(0, 0, GraphicsDevice.DisplayMode.Width, GraphicsDevice.DisplayMode.Height), Color.White);
+        // _spriteBatch.End();
     }
 }
