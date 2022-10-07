@@ -89,6 +89,12 @@ public class CollisionTest : Game
         Reset();
     }
 
+    private bool CollisionCheck()
+    {
+        
+        return Dist() < _ball1Mass + _ball2Mass;
+    }
+
     public CollisionTest()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -179,7 +185,7 @@ public class CollisionTest : Game
         _ball2Pos += _ball2Vel * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // collision test
-        if (!_hasCollided && Dist() < _ball1Mass + _ball2Mass)
+        if (!_hasCollided && CollisionCheck())
         {
             _hasCollided = true;
 

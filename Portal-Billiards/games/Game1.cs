@@ -21,6 +21,7 @@ public class Game1 : Game
     private Texture2D _brickTexture;
 
     private List<Ball> Balls = new List<Ball>();
+    private List<Vector2> _pockets = new List<Vector2>();
 
     private float _aimDir = 0f;
     private float _aimPow = 10f;
@@ -59,6 +60,14 @@ public class Game1 : Game
         Balls.Add(new Ball(new Vector2(780, 300), 14));
         Balls.Add(new Ball(new Vector2(780,270), 13));
         Balls.Add(new Ball(new Vector2(780,240), 10));
+        
+        
+        _pockets.Add(new Vector2(100, 100));
+        _pockets.Add(new Vector2(100, 500));
+        _pockets.Add(new Vector2(500, 100));
+        _pockets.Add(new Vector2(500, 500));
+        _pockets.Add(new Vector2(900, 100));
+        _pockets.Add(new Vector2(900, 500));
     }
 
     protected override void LoadContent()
@@ -113,10 +122,22 @@ public class Game1 : Game
             Balls[0].Velocity += new Vector2(MathF.Cos(_aimDir), MathF.Sin(_aimDir)) * _aimPow;
         }
 
-        
+        // update balls
         for (int i = 0; i < Balls.Count; i++)
         {
             Balls[i].Update(Balls, i);
+        }
+        
+        // Check if balls are sinking into pockets
+        for (int i = 0; i < Balls.Count; i++)
+        {
+            for (int j = 0; j < _pockets.Count; j++)
+            {
+                if (Vector2.Distance(Balls[i].Position, _pockets[j]) < 18)
+                {
+                    Balls.RemoveAt(i);
+                }
+            }
         }
         
         // Check ball collisions
@@ -153,12 +174,16 @@ public class Game1 : Game
         // draw the table and pockets
         _spriteBatch.DrawRectangle(50, 50, 900, 500, Color.Brown, 400);
         _spriteBatch.DrawRectangle(100, 100, 800, 400, Color.DarkGreen, 400);
-        _spriteBatch.DrawCircle(100, 100, 18, 16, Color.Black, 18);
-        _spriteBatch.DrawCircle(100, 500, 18, 16, Color.Black, 18);
-        _spriteBatch.DrawCircle(500, 100, 18, 16, Color.Black, 18);
-        _spriteBatch.DrawCircle(500, 500, 18, 16, Color.Black, 18);
-        _spriteBatch.DrawCircle(900, 100, 18, 16, Color.Black, 18);
-        _spriteBatch.DrawCircle(900, 500, 18, 16, Color.Black, 18);
+        // _spriteBatch.DrawCircle(100, 100, 18, 16, Color.Black, 18);
+        // _spriteBatch.DrawCircle(100, 500, 18, 16, Color.Black, 18);
+        // _spriteBatch.DrawCircle(500, 100, 18, 16, Color.Black, 18);
+        // _spriteBatch.DrawCircle(500, 500, 18, 16, Color.Black, 18);
+        // _spriteBatch.DrawCircle(900, 100, 18, 16, Color.Black, 18);
+        // _spriteBatch.DrawCircle(900, 500, 18, 16, Color.Black, 18);
+        for (int i = 0; i < _pockets.Count; i++)
+        {
+            _spriteBatch.DrawCircle(_pockets[i], 18, 16, Color.Black, 18);
+        }
 
         for (int i = 0; i < Balls.Count; i++)
         {
