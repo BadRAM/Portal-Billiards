@@ -4,12 +4,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 
 namespace Portal_Billiards;
+
+/*
+ * We need to change velocity into a linear equation representing their distance from eachother
+ * 
+ * one dimensional:
+ *  deltaX = initialDispacementX + VelX1*t + VelX2*t
+ *  
+ */
 
 
 // This program is a testbed for detecting collisions between pairs of moving circles
@@ -18,6 +27,7 @@ public class CollisionScience : Game
     
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+    private FontSystem _fontSystem;
 
     private Vector2 _ball1Pos = new Vector2(200, 250);
     // private Vector2 _ball1Vel = new Vector2(59.9f, 63.3f);
@@ -25,6 +35,8 @@ public class CollisionScience : Game
     // private Vector2 _ball2Vel = new Vector2(41.1f, -85.5f);
     private Vector2 _ball1Dest = new Vector2(600, 600);
     private Vector2 _ball2Dest = new Vector2(640, 200);
+
+    private int _ballRadius = 16;
 
 
     private float _duration = 6;
@@ -39,10 +51,14 @@ public class CollisionScience : Game
     
     private bool _skipButton = false;
 
+    private float _predictionStatus;
+    private float _predictedCollision;
+
     private float Dist(float t)
     {
         return (int)Vector2.Distance(Vector2.Lerp(_ball1Pos, _ball1Dest, t), Vector2.Lerp(_ball2Pos, _ball2Dest, t));
     }
+    
 
     private void Chart()
     {
@@ -73,13 +89,33 @@ public class CollisionScience : Game
         // {
         //     
         // }
+        
+        // do the cool maths
+        float dx = _ball1Pos.X - _ball2Pos.X;
+        float dy = _ball1Pos.Y - _ball2Pos.Y;
+        Vector2 v1 = _ball1Dest - _ball1Pos;
+        Vector2 v2 = _ball2Dest - _ball2Pos;
+        float vx = v1.X - v2.X;
+        float vy = v1.Y - v2.Y;
+        int D = _ballRadius * 2;
+        _predictionStatus = MathF.Pow(dx * vx + dy * vy, 2) - (vx*vx + vy*vy)*(-D*D + dx*dx + dy*dy);
+
+        if (_predictionStatus >= 0)
+        {
+            _predictedCollision = (-(dx * vx + dy * vy) - MathF.Sqrt(_predictionStatus)) / (vx * vx + vy * vy);
+        }
+        else
+        {
+            _predictedCollision = -1;
+        }
+
     }
 
-    private void DrawChart(List<int[]> chart, int co, Color color)
+    private void DrawChart(List<int[]> chart, int co, Color color, int thickness)
     {
         for (int i = 0; i < chart.Count-1; i++)
         {
-            _spriteBatch.DrawLine(chart[i][0], chart[i][1] + co, chart[i+1][0], chart[i+1][1] + co, color, 3);
+            _spriteBatch.DrawLine(chart[i][0], chart[i][1] + co, chart[i+1][0], chart[i+1][1] + co, color, thickness);
         }
     }
 
@@ -271,7 +307,13 @@ public class CollisionScience : Game
 
     protected override void LoadContent()
     {
+        string path = Path.GetFullPath(@"..\..\..\");
+
         _spriteBatch = new SpriteBatch(GraphicsDevice);
+        
+        _fontSystem = new FontSystem();
+        //_fontSystem.AddFont(File.ReadAllBytes(path + "fonts\\ModernDOS8x14.ttf"));
+        _fontSystem.AddFont(File.ReadAllBytes(path + "fonts\\alagard.ttf"));
     }
 
     protected override void Update(GameTime gameTime)
@@ -309,7 +351,7 @@ public class CollisionScience : Game
                 }
             }
             
-            if (reset)
+            if (reset/* == _predictionStatus < 0*/)
             {
                 Randomize();
             }
@@ -351,10 +393,10 @@ public class CollisionScience : Game
         const int co = 50; // Chart Offset
 
         
-        DrawChart(_ychart, co, Color.Blue);
-        DrawChart(_xchart, co, Color.DarkGreen);
-        DrawChart(_chart, co, Color.Gray);
-        DrawChart(_mathsChart, co, Color.Pink);
+        DrawChart(_ychart, co, Color.Blue, 2);
+        DrawChart(_xchart, co, Color.DarkGreen, 2);
+        DrawChart(_chart, co, Color.Gray, 3);
+        DrawChart(_mathsChart, co, Color.Pink, 1);
         
 
         // draw time cursor
@@ -362,6 +404,9 @@ public class CollisionScience : Game
         int cursory = co + (int)Dist(t);
         _spriteBatch.DrawCircle(cursor, cursory, 5, 16, Color.WhiteSmoke);
         _spriteBatch.DrawLine(cursor, 0, cursor, 800, Color.WhiteSmoke);
+        
+        // Draw prediction target
+        _spriteBatch.DrawLine(_predictedCollision * cw, 0,  _predictedCollision * cw, 800, Color.LimeGreen, 2);
 
         // draw collision threshold line
         _spriteBatch.DrawLine(0, 82, 800, 82, Color.DarkCyan);
@@ -372,6 +417,9 @@ public class CollisionScience : Game
         _spriteBatch.DrawLine(_ball2Pos, _ball2Dest, Color.DarkSalmon, 2);
         _spriteBatch.DrawCircle(Vector2.Lerp(_ball1Pos, _ball1Dest, t), 16, 16, Color.CadetBlue, 3);
         _spriteBatch.DrawCircle(Vector2.Lerp(_ball2Pos, _ball2Dest, t), 16, 16, Color.Salmon, 3);
+
+        SpriteFontBase font18 = _fontSystem.GetFont(30);
+        _spriteBatch.DrawString(font18, $"Discriminant: {_predictionStatus}\nPrediction: {_predictedCollision}", new Vector2(0, 0), Color.White);
 
         _spriteBatch.End();
 

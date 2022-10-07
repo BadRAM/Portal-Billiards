@@ -40,10 +40,18 @@ public class CollisionTest : Game
     private List<int[]> _ball2Path = new List<int[]>();
     private bool _charted;
     private bool _hasCollided;
+    private float _timeToCollision;
+
+    private float _skip;
+    private int _skipCounter;
+    private bool _stepHeld;
+
+    private Vector2 _contactPoint = new Vector2(-100, -100);
 
 
-    private float _duration = 6;
+    private float _duration = 3;
     private float _currentTime = 0;
+    private float _deltaTime = 0;
 
     // private List<int[]> _chart = new List<int[]>();
     private bool _skipButton = false;
@@ -79,9 +87,9 @@ public class CollisionTest : Game
         _ball2Path.Clear();
         _charted = false;
         
-        _ball1Origin = new Vector2(Random.Shared.Next(200, 300), Random.Shared.Next(350, 450));
-        _ball2Origin = new Vector2(Random.Shared.Next(350, 450), Random.Shared.Next(350, 450));
-        _ball1StartVel = new Vector2(Random.Shared.Next(0, 100), Random.Shared.Next(-10, 10));
+        _ball1Origin = new Vector2(Random.Shared.Next(100, 200), Random.Shared.Next(350, 450));
+        _ball2Origin = new Vector2(Random.Shared.Next(450, 550), Random.Shared.Next(350, 450));
+        _ball1StartVel = new Vector2(Random.Shared.Next(0, 1000), Random.Shared.Next(-10, 10));
         _ball2StartVel = new Vector2(Random.Shared.Next(-10, 10), Random.Shared.Next(-10, 10));
         _ball1Mass = Random.Shared.Next(10, 50);
         _ball2Mass = Random.Shared.Next(10, 50);
@@ -89,10 +97,28 @@ public class CollisionTest : Game
         Reset();
     }
 
-    private bool CollisionCheck()
+    private float CollisionCheck()
     {
         
-        return Dist() < _ball1Mass + _ball2Mass;
+        // do the cool maths
+        float dx = _ball1Pos.X - _ball2Pos.X;
+        float dy = _ball1Pos.Y - _ball2Pos.Y;
+        float vx = _ball1Vel.X - _ball2Vel.X;
+        float vy = _ball1Vel.Y - _ball2Vel.Y;
+        int D = (int)(_ball1Mass + _ball2Mass);
+        float predictionStatus = MathF.Pow(dx * vx + dy * vy, 2) - (vx*vx + vy*vy)*(-D*D + dx*dx + dy*dy);
+        float predictedCollision;
+
+        if (predictionStatus >= 0)
+        {
+            predictedCollision = (-(dx * vx + dy * vy) - MathF.Sqrt(predictionStatus)) / (vx * vx + vy * vy);
+            return predictedCollision;
+        }
+        else
+        {
+            return -1;
+        }
+        
     }
 
     public CollisionTest()
@@ -153,6 +179,10 @@ public class CollisionTest : Game
         if (state.IsKeyDown(Keys.Z)) { _two += gameTime.GetElapsedSeconds() * 0.5f; }
         else if (state.IsKeyDown(Keys.X)) { _two -= gameTime.GetElapsedSeconds() * 0.5f; }
         else { _two = MathF.Round(_two, 1); }
+        if (state.IsKeyDown(Keys.C)) { _skip += gameTime.GetElapsedSeconds() * 2; }
+        else if (state.IsKeyDown(Keys.V)) { _skip -= gameTime.GetElapsedSeconds() * 2; }
+        else { _skip = (int)_skip; }
+        _skip = MathF.Max(_skip, 1);
         
         
 
@@ -161,17 +191,33 @@ public class CollisionTest : Game
             if (!_skipButton)
             {
                 Randomize();
-                
+                _contactPoint = Vector2.Zero;
                 _skipButton = true;
             }
         }
         else if (_skipButton) _skipButton = false;
 
-
-        if (!state.IsKeyDown(Keys.Space))
+        if (_skipCounter < (int)_skip)
         {
-            _currentTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _skipCounter++;
+            return;
         }
+        else
+        {
+            _skipCounter = 0;
+        }
+
+        if (!state.IsKeyDown(Keys.Space) || (!_stepHeld && state.IsKeyDown(Keys.S)))
+        {
+            _deltaTime = gameTime.GetElapsedSeconds() * (int)_skip;
+            _currentTime += _deltaTime;
+        }
+        else
+        {
+            _deltaTime = 0;
+        }
+        _stepHeld = state.IsKeyDown(Keys.S);
+        
         
         if (_currentTime > _duration)
         {
@@ -179,15 +225,22 @@ public class CollisionTest : Game
             Reset();
         }
         
-        // Physics update
 
-        _ball1Pos += _ball1Vel * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        _ball2Pos += _ball2Vel * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+        if (!_hasCollided)
+        {
+            _timeToCollision = CollisionCheck();
+        }
+        
         // collision test
-        if (!_hasCollided && CollisionCheck())
+        if (!_hasCollided && _timeToCollision > 0 && _timeToCollision < _deltaTime)
         {
             _hasCollided = true;
+
+            _ball1Pos += _ball1Vel * _timeToCollision;
+            _ball2Pos += _ball2Vel * _timeToCollision;
+
+            _contactPoint = _ball1Pos + (_ball2Pos - _ball1Pos).NormalizedCopy() * _ball1Mass;
 
             switch (_mode)
             {
@@ -235,7 +288,18 @@ public class CollisionTest : Game
                     _ball2Vel = CoolVel - _ball2Vel;
                     break;
             }
+            
+            _ball1Pos += _ball1Vel * (_deltaTime - _timeToCollision);
+            _ball2Pos += _ball2Vel * (_deltaTime - _timeToCollision);
         }
+        else
+        {
+            // Physics update
+
+            _ball1Pos += _ball1Vel * _deltaTime;
+            _ball2Pos += _ball2Vel * _deltaTime;
+        }
+
 
         if (!_charted)
         {
@@ -263,8 +327,9 @@ public class CollisionTest : Game
         
         
         SpriteFontBase font18 = _fontSystem.GetFont(30);
-        _spriteBatch.DrawString(font18, $"MODE: {_mode}\nMASS: {_ball1Mass} {_ball2Mass}\nVELOCITY: {_ball1Vel.Length()} {_ball2Vel.Length()}\nTWO: {_two}", new Vector2(0, 0), Color.White);
+        _spriteBatch.DrawString(font18, $"Mode: {_mode}\nMass: {_ball1Mass} {_ball2Mass}\nVelocity: {_ball1Vel.Length()} {_ball2Vel.Length()}\nTwo: {_two}\nTime to collision: {_timeToCollision}\nSkip: {(int)_skip}", new Vector2(0, 0), Color.White);
 
+        _spriteBatch.DrawCircle(_contactPoint, 5, 4, Color.White);
 
         _spriteBatch.End();
 
