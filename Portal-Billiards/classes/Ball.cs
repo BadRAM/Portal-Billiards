@@ -111,6 +111,48 @@ public class Ball
     {
         Position += Velocity;
     }
+    
+    //
+    public void Move(float delta)
+    {
+        Position += Velocity * delta;
+        
+        // check for collision with walls
+        if (Position.X < 100 + Size)
+        {
+            Velocity.X = -Velocity.X;
+            Position.X += -Position.X + 100 + Size;
+        }
+        else if (Position.X > 900 - Size)
+        {
+            Position.X -= Position.X - (900 - Size);
+            Velocity.X = -Velocity.X;
+        }
+        if (Position.Y < 100 + Size)
+        {
+            Velocity.Y = -Velocity.Y;
+            Position.Y += -Position.Y + 100 + Size;
+        }
+        else if (Position.Y > 500 - Size)
+        {
+            Position.Y -= Position.Y - (500 - Size);
+            Velocity.Y = -Velocity.Y;
+        }
+    }
+
+    public void Drag()
+    {
+        // drag
+        if (Velocity.Length() < 0.05f)
+        {
+            Velocity = Vector2.Zero;
+        }
+        else
+        {
+            Velocity = Velocity.NormalizedCopy() * (Velocity.Length() - 0.01f);
+            Velocity *= 0.99f;
+        }
+    }
 
     public void Draw(SpriteBatch spriteBatch, FontSystem fontSystem)
     {

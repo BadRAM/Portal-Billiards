@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,7 +26,9 @@ public class Game1 : Game
     private List<Vector2> _pockets = new List<Vector2>();
 
     private float _aimDir = 0f;
-    private float _aimPow = 10f;
+    private float _aimPow = 100f;
+
+    private bool _spawnHeld;
 
     public Game1()
     {
@@ -46,21 +49,21 @@ public class Game1 : Game
         base.Initialize();
         
         Balls.Add(new Ball(new Vector2(300,300), 0)); // Add Cueball to index 0
-        Balls.Add(new Ball(new Vector2(700,300), 9));
-        Balls.Add(new Ball(new Vector2(720, 315), 15));
-        Balls.Add(new Ball(new Vector2(720,285), 3));
-        Balls.Add(new Ball(new Vector2(740,330), 5));
+        // Balls.Add(new Ball(new Vector2(700,300), 9));
+        // Balls.Add(new Ball(new Vector2(720, 315), 15));
+        // Balls.Add(new Ball(new Vector2(720,285), 3));
+        // Balls.Add(new Ball(new Vector2(740,330), 5));
         Balls.Add(new Ball(new Vector2(740, 300), 8)); // 8 ball
-        Balls.Add(new Ball(new Vector2(740,270), 1));
-        Balls.Add(new Ball(new Vector2(760,345), 2));
-        Balls.Add(new Ball(new Vector2(760,315), 11));
-        Balls.Add(new Ball(new Vector2(760,285), 4));
-        Balls.Add(new Ball(new Vector2(760,255), 12));
-        Balls.Add(new Ball(new Vector2(780,360), 7));
-        Balls.Add(new Ball(new Vector2(780,330), 6));
-        Balls.Add(new Ball(new Vector2(780, 300), 14));
-        Balls.Add(new Ball(new Vector2(780,270), 13));
-        Balls.Add(new Ball(new Vector2(780,240), 10));
+        // Balls.Add(new Ball(new Vector2(740,270), 1));
+        // Balls.Add(new Ball(new Vector2(760,345), 2));
+        // Balls.Add(new Ball(new Vector2(760,315), 11));
+        // Balls.Add(new Ball(new Vector2(760,285), 4));
+        // Balls.Add(new Ball(new Vector2(760,255), 12));
+        // Balls.Add(new Ball(new Vector2(780,360), 7));
+        // Balls.Add(new Ball(new Vector2(780,330), 6));
+        // Balls.Add(new Ball(new Vector2(780, 300), 14));
+        // Balls.Add(new Ball(new Vector2(780,270), 13));
+        // Balls.Add(new Ball(new Vector2(780,240), 10));
         
         
         _pockets.Add(new Vector2(102, 102));
@@ -75,12 +78,7 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         
-        // Debug.WriteLine("#######");
-        // Debug.WriteLine("gonna load some file, Environment.CurrentDirectory = " + Environment.CurrentDirectory );
         string path = Path.GetFullPath(@"..\..\..\");
-        // Debug.WriteLine("Path.GetFullPath = " + path);
-        // Debug.WriteLine("#######");
-        // Console.WriteLine("Where does this go?");
 
         // _ballTexture = Texture2D.FromFile(GraphicsDevice, path + "pinball.png");
         // _brickTexture = Texture2D.FromFile(GraphicsDevice, path + "Brick.png");
@@ -90,13 +88,125 @@ public class Game1 : Game
 
         _smallFont = new FontSystem();
         _smallFont.AddFont(File.ReadAllBytes(path + "fonts\\pixels.ttf"));
+    }
 
-        // using (var fileStream = new FileStream("Content/ball.png", FileMode.Open))
+    private void PhysicsStep(float deltaTime)
+    {
+        /* 
+         * Known Physics Update Steps:
+         * - apply forces
+         * - prune collisions
+         * - precise check for collisions
+         * - apply collision effects
+         * - step non colliding objects
+         *
+         * Known future requirements:
+         * - different collider shapes
+         *
+         * Thoughts:
+         *  when solving collisions, if a collision is detected, all balls will be advanced to that point in time and
+         *  further collisions advance from that point. in this case, do I need to recheck pruned balls?
+         * 
+         */
+
+        // Apply Forces
+        foreach (Ball b in Balls)
+        {
+            b.Drag();
+        }
+
+        // prune collisions
+        List<int[]> collisions = new List<int[]>();
+        for (int i = 0; i < Balls.Count; i++) // Non prune method, simply generates a list of all non duplicate collisions
+        {
+            for (int j = i+1; j < Balls.Count; j++)
+            {
+                collisions.Add(new []{i, j});
+            }
+        }
+
+
+        float d = deltaTime;
+        while (true)
+        {
+            // precise check for collisions
+            int lowest = -1;
+            float lowestVal = Single.PositiveInfinity;
+            for (int i = 0; i < collisions.Count; i++)
+            {
+                float t = CCCC.Balls(Balls[collisions[i][0]], Balls[collisions[i][1]]);
+
+                if (t < 0 || t > d)
+                {
+                    collisions.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                
+                if (t < lowestVal)
+                {
+                    lowest = i;
+                    lowestVal = t;
+                }
+            }
+
+            if (lowest == -1) break;
+
+            // move all balls forward to collision time
+            foreach (Ball b in Balls)
+            {
+                b.Move(lowestVal);
+            }
+            
+            // do collision
+            Balls[collisions[lowest][0]].CollideWith(Balls[collisions[lowest][1]]);
+            collisions.RemoveAt(lowest);
+            d -= lowestVal;
+        }
+        
+        // move all balls forward to end of frame positions now that no more collisions need to be done
+        foreach (Ball b in Balls)
+        {
+            b.Move(d);
+        }
+
+
+
+        // // update balls
+        // for (int i = 0; i < Balls.Count; i++)
         // {
-        //     ballTexture = Texture2D.FromStream(GraphicsDevice, fileStream);
+        //     Balls[i].Update(Balls, i);
         // }
-
-        // TODO: use this.Content to load your game content here
+        //
+        // // Check if balls are sinking into pockets
+        // for (int i = 0; i < Balls.Count; i++)
+        // {
+        //     for (int j = 0; j < _pockets.Count; j++)
+        //     {
+        //         if (Vector2.Distance(Balls[i].Position, _pockets[j]) < 20)
+        //         {
+        //             Balls[i].Velocity = Vector2.Zero;
+        //             Balls[i].Position = new Vector2(400 + SunkBalls.Count * 24, 650);
+        //             SunkBalls.Add(Balls[i]);
+        //             Balls.RemoveAt(i);
+        //             break;
+        //         }
+        //     }
+        // }
+        //
+        // // Check ball collisions
+        // for (int i = 0; i < Balls.Count-1; i++)
+        // {
+        //     for (int j = i+1; j < Balls.Count; j++)
+        //     {
+        //         Balls[i].CollideWith(Balls[j]);
+        //     }
+        // }
+        //
+        // for (int i = 0; i < Balls.Count; i++)
+        // {
+        //     Balls[i].LateUpdate();
+        // }
     }
 
     protected override void Update(GameTime gameTime)
@@ -105,8 +215,7 @@ public class Game1 : Game
         KeyboardState state = Keyboard.GetState();
             
         // If they hit esc, exit
-        if (state.IsKeyDown(Keys.Escape))
-            Exit();
+        if (state.IsKeyDown(Keys.Escape)) Exit();
 
         float fine = state.IsKeyDown(Keys.LeftShift) ? 0.5f : 2f;
         
@@ -115,49 +224,15 @@ public class Game1 : Game
         if (state.IsKeyDown(Keys.Left))  { _aimDir -= gameTime.GetElapsedSeconds() * fine; }
         
         // control aim power
-        if (state.IsKeyDown(Keys.Up))   { _aimPow += gameTime.GetElapsedSeconds() * 2f * fine; }
-        if (state.IsKeyDown(Keys.Down)) { _aimPow -= gameTime.GetElapsedSeconds() * 2f * fine; }
+        if (state.IsKeyDown(Keys.Up))   { _aimPow += gameTime.GetElapsedSeconds() * 20f * fine; }
+        if (state.IsKeyDown(Keys.Down)) { _aimPow -= gameTime.GetElapsedSeconds() * 20f * fine; }
 
         if (Balls[0].Velocity == Vector2.Zero && state.IsKeyDown(Keys.Space))
         {
             Balls[0].Velocity += new Vector2(MathF.Cos(_aimDir), MathF.Sin(_aimDir)) * _aimPow;
         }
 
-        // update balls
-        for (int i = 0; i < Balls.Count; i++)
-        {
-            Balls[i].Update(Balls, i);
-        }
-        
-        // Check if balls are sinking into pockets
-        for (int i = 0; i < Balls.Count; i++)
-        {
-            for (int j = 0; j < _pockets.Count; j++)
-            {
-                if (Vector2.Distance(Balls[i].Position, _pockets[j]) < 20)
-                {
-                    Balls[i].Velocity = Vector2.Zero;
-                    Balls[i].Position = new Vector2(400 + SunkBalls.Count * 24, 650);
-                    SunkBalls.Add(Balls[i]);
-                    Balls.RemoveAt(i);
-                    break;
-                }
-            }
-        }
-        
-        // Check ball collisions
-        for (int i = 0; i < Balls.Count-1; i++)
-        {
-            for (int j = i+1; j < Balls.Count; j++)
-            {
-                Balls[i].CollideWith(Balls[j]);
-            }
-        }
-        
-        for (int i = 0; i < Balls.Count; i++)
-        {
-            Balls[i].LateUpdate();
-        }
+        PhysicsStep(gameTime.GetElapsedSeconds());
 
         base.Update(gameTime);
     }
@@ -200,7 +275,7 @@ public class Game1 : Game
             Vector2 aimDir = new Vector2(MathF.Cos(_aimDir), MathF.Sin(_aimDir));
             for (int i = 1; i <= 5; i++)
             {
-                _spriteBatch.DrawCircle(Balls[0].Position + aimDir * _aimPow * i * 4f, 4, 8, Color.White, 1);
+                _spriteBatch.DrawCircle(Balls[0].Position + aimDir * _aimPow * i * 0.25f, 4, 8, Color.White, 1);
             }
         }
         
