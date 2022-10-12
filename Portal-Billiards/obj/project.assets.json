@@ -5,10 +5,14 @@
       "Cyotek.Drawing.BitmapFont/2.0.4": {
         "type": "package",
         "compile": {
-          "lib/net5.0/Cyotek.Drawing.BitmapFont.dll": {}
+          "lib/net5.0/Cyotek.Drawing.BitmapFont.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net5.0/Cyotek.Drawing.BitmapFont.dll": {}
+          "lib/net5.0/Cyotek.Drawing.BitmapFont.dll": {
+            "related": ".xml"
+          }
         }
       },
       "FontStashSharp.Base/1.1.7": {
@@ -215,10 +219,14 @@
       "Newtonsoft.Json/12.0.3": {
         "type": "package",
         "compile": {
-          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
         }
       },
       "StbImageSharp/2.27.12": {

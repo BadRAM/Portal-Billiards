@@ -26,10 +26,13 @@ public class Game1 : Game
     private List<Vector2> _pockets = new List<Vector2>();
 
     private float _aimDir = 0f;
-    private float _aimPow = 100f;
+    private float _aimPow = 400f;
 
     private bool _spawnHeld;
+    private bool _stepHeld;
 
+    private string _debugText;
+    
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -49,21 +52,21 @@ public class Game1 : Game
         base.Initialize();
         
         Balls.Add(new Ball(new Vector2(300,300), 0)); // Add Cueball to index 0
-        // Balls.Add(new Ball(new Vector2(700,300), 9));
-        // Balls.Add(new Ball(new Vector2(720, 315), 15));
-        // Balls.Add(new Ball(new Vector2(720,285), 3));
-        // Balls.Add(new Ball(new Vector2(740,330), 5));
+        Balls.Add(new Ball(new Vector2(700,300), 9));
+        Balls.Add(new Ball(new Vector2(720, 315), 15));
+        Balls.Add(new Ball(new Vector2(720,285), 3));
+        Balls.Add(new Ball(new Vector2(740,330), 5));
         Balls.Add(new Ball(new Vector2(740, 300), 8)); // 8 ball
-        // Balls.Add(new Ball(new Vector2(740,270), 1));
-        // Balls.Add(new Ball(new Vector2(760,345), 2));
-        // Balls.Add(new Ball(new Vector2(760,315), 11));
-        // Balls.Add(new Ball(new Vector2(760,285), 4));
-        // Balls.Add(new Ball(new Vector2(760,255), 12));
-        // Balls.Add(new Ball(new Vector2(780,360), 7));
-        // Balls.Add(new Ball(new Vector2(780,330), 6));
-        // Balls.Add(new Ball(new Vector2(780, 300), 14));
-        // Balls.Add(new Ball(new Vector2(780,270), 13));
-        // Balls.Add(new Ball(new Vector2(780,240), 10));
+        Balls.Add(new Ball(new Vector2(740,270), 1));
+        Balls.Add(new Ball(new Vector2(760,345), 2));
+        Balls.Add(new Ball(new Vector2(760,315), 11));
+        Balls.Add(new Ball(new Vector2(760,285), 4));
+        Balls.Add(new Ball(new Vector2(760,255), 12));
+        Balls.Add(new Ball(new Vector2(780,360), 7));
+        Balls.Add(new Ball(new Vector2(780,330), 6));
+        Balls.Add(new Ball(new Vector2(780, 300), 14));
+        Balls.Add(new Ball(new Vector2(780,270), 13));
+        Balls.Add(new Ball(new Vector2(780,240), 10));
         
         
         _pockets.Add(new Vector2(102, 102));
@@ -90,8 +93,30 @@ public class Game1 : Game
         _smallFont.AddFont(File.ReadAllBytes(path + "fonts\\pixels.ttf"));
     }
 
+    // returns a list of collision candidates as the indices of the balls they relate to
+    private List<int[]> Prune(float delta)
+    {
+        // prune collisions
+        List<int[]> collisions = new List<int[]>();
+        for (int i = 0; i < Balls.Count; i++) // Non prune method, simply generates a list of all non duplicate collisions
+        {
+            for (int j = i+1; j < Balls.Count; j++)
+            {
+                if (Vector2.Distance(Balls[i].Position, Balls[j].Position) <= 
+                    Balls[i].Size + Balls[i].Velocity.Length() * delta + 
+                    Balls[j].Size + Balls[j].Velocity.Length() * delta)
+                {
+                    collisions.Add(new []{i, j});
+                }
+            }
+        }
+        return collisions;
+    }
+
     private void PhysicsStep(float deltaTime)
     {
+        _debugText = "";
+
         /* 
          * Known Physics Update Steps:
          * - apply forces
@@ -116,16 +141,11 @@ public class Game1 : Game
         }
 
         // prune collisions
-        List<int[]> collisions = new List<int[]>();
-        for (int i = 0; i < Balls.Count; i++) // Non prune method, simply generates a list of all non duplicate collisions
-        {
-            for (int j = i+1; j < Balls.Count; j++)
-            {
-                collisions.Add(new []{i, j});
-            }
-        }
+        List<int[]> collisions = Prune(deltaTime);
 
+        _debugText += $"{collisions.Count} collisions after pruning, ";
 
+        int collisionsHandled = 0;
         float d = deltaTime;
         while (true)
         {
@@ -161,56 +181,40 @@ public class Game1 : Game
             // do collision
             Balls[collisions[lowest][0]].CollideWith(Balls[collisions[lowest][1]]);
             collisions.RemoveAt(lowest);
+            collisionsHandled++;
             d -= lowestVal;
+            collisions = Prune(d);
         }
+
+        _debugText += $"{collisionsHandled} collisions handled.";
         
         // move all balls forward to end of frame positions now that no more collisions need to be done
         foreach (Ball b in Balls)
         {
             b.Move(d);
         }
-
-
-
-        // // update balls
-        // for (int i = 0; i < Balls.Count; i++)
-        // {
-        //     Balls[i].Update(Balls, i);
-        // }
-        //
-        // // Check if balls are sinking into pockets
-        // for (int i = 0; i < Balls.Count; i++)
-        // {
-        //     for (int j = 0; j < _pockets.Count; j++)
-        //     {
-        //         if (Vector2.Distance(Balls[i].Position, _pockets[j]) < 20)
-        //         {
-        //             Balls[i].Velocity = Vector2.Zero;
-        //             Balls[i].Position = new Vector2(400 + SunkBalls.Count * 24, 650);
-        //             SunkBalls.Add(Balls[i]);
-        //             Balls.RemoveAt(i);
-        //             break;
-        //         }
-        //     }
-        // }
-        //
-        // // Check ball collisions
-        // for (int i = 0; i < Balls.Count-1; i++)
-        // {
-        //     for (int j = i+1; j < Balls.Count; j++)
-        //     {
-        //         Balls[i].CollideWith(Balls[j]);
-        //     }
-        // }
-        //
-        // for (int i = 0; i < Balls.Count; i++)
-        // {
-        //     Balls[i].LateUpdate();
-        // }
+        
+        
+        // Check if balls are sinking into pockets
+        for (int i = 0; i < Balls.Count; i++)
+        {
+            for (int j = 0; j < _pockets.Count; j++)
+            {
+                if (Vector2.Distance(Balls[i].Position, _pockets[j]) < 20)
+                {
+                    Balls[i].Velocity = Vector2.Zero;
+                    Balls[i].Position = new Vector2(400 + SunkBalls.Count * 24, 650);
+                    SunkBalls.Add(Balls[i]);
+                    Balls.RemoveAt(i);
+                    break;
+                }
+            }
+        }
     }
 
     protected override void Update(GameTime gameTime)
     {
+        
         // Poll for current keyboard state
         KeyboardState state = Keyboard.GetState();
             
@@ -224,15 +228,20 @@ public class Game1 : Game
         if (state.IsKeyDown(Keys.Left))  { _aimDir -= gameTime.GetElapsedSeconds() * fine; }
         
         // control aim power
-        if (state.IsKeyDown(Keys.Up))   { _aimPow += gameTime.GetElapsedSeconds() * 20f * fine; }
-        if (state.IsKeyDown(Keys.Down)) { _aimPow -= gameTime.GetElapsedSeconds() * 20f * fine; }
+        if (state.IsKeyDown(Keys.Up))   { _aimPow += gameTime.GetElapsedSeconds() * 80f * fine; }
+        if (state.IsKeyDown(Keys.Down)) { _aimPow -= gameTime.GetElapsedSeconds() * 80f * fine; }
 
         if (Balls[0].Velocity == Vector2.Zero && state.IsKeyDown(Keys.Space))
         {
-            Balls[0].Velocity += new Vector2(MathF.Cos(_aimDir), MathF.Sin(_aimDir)) * _aimPow;
+            Balls[0].Velocity = new Vector2(MathF.Cos(_aimDir), MathF.Sin(_aimDir)) * _aimPow;
         }
+        
+        if (!state.IsKeyDown(Keys.A) || (!_stepHeld && state.IsKeyDown(Keys.S)))
+        {
+            PhysicsStep(gameTime.GetElapsedSeconds());
+        }
+        _stepHeld = state.IsKeyDown(Keys.S);
 
-        PhysicsStep(gameTime.GetElapsedSeconds());
 
         base.Update(gameTime);
     }
@@ -275,12 +284,13 @@ public class Game1 : Game
             Vector2 aimDir = new Vector2(MathF.Cos(_aimDir), MathF.Sin(_aimDir));
             for (int i = 1; i <= 5; i++)
             {
-                _spriteBatch.DrawCircle(Balls[0].Position + aimDir * _aimPow * i * 0.25f, 4, 8, Color.White, 1);
+                _spriteBatch.DrawCircle(Balls[0].Position + aimDir * _aimPow * i * 0.1f, 4, 8, Color.White, 1);
             }
         }
         
         SpriteFontBase font18 = _fontSystem.GetFont(30);
-        _spriteBatch.DrawString(font18, $"Power: {Math.Round(_aimPow, 2)}\nSkill: 0", new Vector2(50, 600), Color.White);
+        _spriteBatch.DrawString(font18, $"Power: {Math.Round(_aimPow, 2)}", new Vector2(50, 550), Color.White);
+        _spriteBatch.DrawString(font18, _debugText, new Vector2(50, 600), Color.White);
         SpriteFontBase font5 = _smallFont.GetFont(12);
         _spriteBatch.DrawString(font5, "1234567890", new Vector2(600, 600), Color.White);
 

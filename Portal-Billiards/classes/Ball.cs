@@ -84,10 +84,10 @@ public class Ball
     {
         // // end now if both balls are stationary
         // if (Velocity == Vector2.Zero && target.Velocity == Vector2.Zero) { return false; }
-        // end now if not in collision range
+        // // end now if not in collision range
         float overlap = (Size + target.Size) - Vector2.Distance(Position, target.Position);
-        if (overlap <= 0 ) { return false; }
-
+        // if (overlap <= 0 ) { return false; }
+        //
         // Displace balls so they no longer overlap
         Vector2 norm = Vector2.Normalize(Position - target.Position);
         Position += norm * (overlap / 2);
@@ -107,36 +107,33 @@ public class Ball
         return true;
     }
 
-    public void LateUpdate()
-    {
-        Position += Velocity;
-    }
-    
     //
     public void Move(float delta)
     {
         Position += Velocity * delta;
+
+        float wallElasticity = 1.0f;
         
         // check for collision with walls
         if (Position.X < 100 + Size)
         {
-            Velocity.X = -Velocity.X;
+            Velocity.X = -Velocity.X * wallElasticity;
             Position.X += -Position.X + 100 + Size;
         }
         else if (Position.X > 900 - Size)
         {
             Position.X -= Position.X - (900 - Size);
-            Velocity.X = -Velocity.X;
+            Velocity.X = -Velocity.X * wallElasticity;
         }
         if (Position.Y < 100 + Size)
         {
-            Velocity.Y = -Velocity.Y;
+            Velocity.Y = -Velocity.Y * wallElasticity;
             Position.Y += -Position.Y + 100 + Size;
         }
         else if (Position.Y > 500 - Size)
         {
             Position.Y -= Position.Y - (500 - Size);
-            Velocity.Y = -Velocity.Y;
+            Velocity.Y = -Velocity.Y * wallElasticity;
         }
     }
 
@@ -150,7 +147,7 @@ public class Ball
         else
         {
             Velocity = Velocity.NormalizedCopy() * (Velocity.Length() - 0.01f);
-            Velocity *= 0.99f;
+            Velocity *= 0.98f;
         }
     }
 
