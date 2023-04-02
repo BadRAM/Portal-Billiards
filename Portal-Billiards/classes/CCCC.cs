@@ -2,8 +2,9 @@ using System;
 
 namespace Portal_Billiards;
 
-public static class CCCC
+public static class CCCC // Circle Circle Collision Check utility functions
 {
+    // returns the time in s from present that the two balls passed will collide
     public static float Balls(Ball ball1, Ball ball2)
     {
                 

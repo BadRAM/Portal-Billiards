@@ -13,8 +13,12 @@
         "packagesPath": "C:\\Users\\dgame\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\dgame\\RiderProjects\\Portal-Billiards\\Portal-Billiards\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Users\\dgame\\AppData\\Roaming\\Godot\\mono\\GodotNuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "C:\\Users\\dgame\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\dgame\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\dgame\\AppData\\Roaming\\NuGet\\config\\Godot.Offline.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
